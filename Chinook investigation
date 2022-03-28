@@ -1,0 +1,144 @@
+/* Query 1- query to find the top 10 Best Seller Genres  */
+
+SELECT g.name AS "Genre",
+       (sum(il.UnitPrice)* sum(il.quantity)) AS "Total Money Paid"
+FROM invoice AS i
+JOIN InvoiceLine AS il   ON i.InvoiceId= il.InvoiceId
+JOIN Track AS t          ON t.TrackId = il.TrackId
+JOIN genre AS g          ON g.GenreId = t.GenreId
+GROUP BY 1
+ORDER BY 2 DESC
+limit 10
+
+
+/* Query 2- query to find the top 10 countries that paid the most for the best seller Genre */
+
+SELECT i.BillingCountry AS "Country",
+       (sum(il.UnitPrice)* sum(il.quantity)) AS "Total Money Paid"
+FROM invoice AS i
+JOIN InvoiceLine AS il     ON i.InvoiceId= il.InvoiceId
+JOIN Track AS t            ON t.TrackId = il.TrackId
+JOIN genre AS g            ON g.GenreId = t.GenreId
+WHERE g.name =
+    (SELECT g.name AS "Genre"
+     FROM invoice AS i
+     JOIN InvoiceLine AS il    ON i.InvoiceId= il.InvoiceId
+     JOIN Track AS t           ON t.TrackId = il.TrackId
+     JOIN genre AS g           ON g.GenreId = t.GenreId
+     GROUP BY 1
+     ORDER BY (sum(il.UnitPrice)* sum(il.quantity)) DESC
+     LIMIT 1)
+GROUP BY 1
+ORDER BY 2 DESC
+limit 10
+
+
+/* Query 3- query to find the top 10 cities that paid the most for the best seller Genre */
+
+SELECT i.BillingCity AS "City",
+       (sum(il.UnitPrice)* sum(il.quantity)) AS "Total Money Paid"
+FROM invoice AS i
+JOIN InvoiceLine AS il     ON i.InvoiceId= il.InvoiceId
+JOIN Track AS t            ON t.TrackId = il.TrackId
+JOIN genre AS g            ON g.GenreId = t.GenreId
+WHERE g.name =
+    (SELECT g.name AS "Genre"
+     FROM invoice AS i
+     JOIN InvoiceLine AS il    ON i.InvoiceId= il.InvoiceId
+     JOIN Track AS t           ON t.TrackId = il.TrackId
+     JOIN genre AS g           ON g.GenreId = t.GenreId
+     GROUP BY 1
+     ORDER BY (sum(il.UnitPrice)* sum(il.quantity)) DESC
+     LIMIT 1)
+GROUP BY 1
+ORDER BY 2 DESC
+limit 10
+
+
+/* Query 4- query to find the top 10 customers that paid the most for the best seller Genre */
+
+
+SELECT i.BillingCountry AS country_name,
+       c.FirstName,
+       c.LastName,
+       (sum(il.UnitPrice)* sum(il.quantity))AS spent
+FROM Customer AS c
+JOIN Invoice AS i ON c.CustomerId=i.CustomerId
+JOIN InvoiceLine AS il ON i.InvoiceId = il.InvoiceId
+JOIN track AS t ON t.TrackId=il.TrackId
+JOIN Genre AS g ON g.genreid=t.GenreId
+WHERE g.name =
+    (SELECT g.name AS "Genre"
+     FROM invoice AS i
+     JOIN InvoiceLine AS il ON i.InvoiceId= il.InvoiceId
+     JOIN Track AS t ON t.TrackId = il.TrackId
+     JOIN genre AS g ON g.GenreId = t.GenreId
+     GROUP BY 1
+     ORDER BY (sum(il.UnitPrice)* sum(il.quantity)) DESC
+     LIMIT 1)
+GROUP BY 1,
+         2,
+         3
+ORDER BY 4 DESC
+LIMIT 10
+		
+
+/* Query 5- query to find the Artists of the Top 10 best seller albums */
+
+SELECT ar.Name,
+       a.title AS album,
+       (sum(t.unitprice)*sum(il.quantity))AS "Total Revenues"
+	   
+FROM Album AS a
+JOIN Track AS t           ON a.AlbumId = t.AlbumId
+JOIN InvoiceLine AS il    ON t.TrackId = il.TrackId
+JOIN Artist AS ar         ON a.ArtistId = ar.ArtistId
+
+GROUP BY 1, 2
+ORDER BY 3 DESC
+LIMIT 10
+
+
+
+/* Query 6- query to find the customers in each country who paid the most for the best seller Genre  */
+
+SELECT t3.FirstName,
+       t3.LastName,
+       t3.country_name,
+       t3.total_spent
+FROM
+  (SELECT country_name,
+          max(total_spent) AS total_spent
+   FROM
+     (SELECT c.FirstName,
+             c.LastName,
+             i.BillingCountry AS country_name,
+             (sum(il.UnitPrice)* sum(il.quantity))AS total_spent
+      FROM Customer AS c
+      JOIN invoice AS i ON c.CustomerId = i.CustomerId
+      JOIN InvoiceLine AS il ON i.InvoiceId= il.InvoiceId
+      JOIN Track AS t ON t.TrackId = il.TrackId
+      JOIN genre AS g ON g.GenreId = t.GenreId
+      GROUP BY 1,
+               2,
+               3
+      having g.Name = "Rock") t1
+   GROUP BY 1) t2
+JOIN
+  (SELECT c.FirstName,
+          c.LastName,
+          i.BillingCountry AS country_name,
+          (sum(il.UnitPrice)* sum(il.quantity))AS total_spent
+   FROM Customer AS c
+   JOIN invoice AS i ON c.CustomerId = i.CustomerId
+   JOIN InvoiceLine AS il ON i.InvoiceId= il.InvoiceId
+   JOIN Track AS t ON t.TrackId = il.TrackId
+   JOIN genre AS g ON g.GenreId = t.GenreId
+   GROUP BY 1,
+            2,
+            3
+   having g.Name = "Rock"
+   )t3 
+ON t3.country_name = t2.country_name
+AND t3.total_spent = t2.total_spent
+order by 4 DESC
