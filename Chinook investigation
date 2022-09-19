@@ -100,7 +100,7 @@ LIMIT 10
 
 
 
-/* Query 6- query to find the customers in each country who paid the most for the best seller Genre  */
+/* Query 6- query to find the customers in each country who paid the most for Rock Music  */
 
 SELECT t3.FirstName,
        t3.LastName,
